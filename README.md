@@ -6,12 +6,13 @@ A web-based Text-to-Speech (TTS) app using Edge-TTS, allowing users to convert t
 
 ## 📁 Project Structure
 
-📂 static/ → Background music and output MP3
-📂 templates/ → HTML templates (index.html)
-📂 uploads/ → Uploaded user files
-📄 main.py → Flask app and audio processing logic
-📄 requirements.txt → Python package list
-📄 README.md → This file
+- 📂 **static/** – Background music and output MP3  
+- 📂 **templates/** – HTML templates (`index.html`)  
+- 📂 **uploads/** – Uploaded user files  
+- 📄 **main.py** – Flask app and audio processing logic  
+- 📄 **requirements.txt** – Python package list  
+- 📄 **README.md** – This file  
+
 
 ---
 
