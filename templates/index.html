@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -26,13 +27,17 @@
         label {
             font-weight: bold;
         }
-        input, select {
+        input, select, textarea {
             margin-top: 4px;
             margin-bottom: 12px;
             width: 100%;
             padding: 0.6em;
             border: 1px solid #ccc;
             border-radius: 6px;
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical;
         }
         input[type=checkbox] {
             width: 20px;
@@ -91,15 +96,28 @@
     <div class="container">
         <h1>🎤 文本转语音生成器<br><span style="font-size: 0.6em; font-weight: normal;">Text-to-Speech Generator</span></h1>
 
-        <form method="POST" enctype="multipart/form-data">
-            <label>📄 上传文本文件 (.txt / .docx):<br><span style="font-size: 0.9em; color: #666;">Upload a text file</span></label>
-            <input type="file" name="textfile" required>
+        {% if error %}
+        <p style="color: red; font-weight: bold;">⚠️ {{ error }}</p>
+        {% endif %}
 
-            <p style="color: #d32f2f; font-size: 0.9em; font-weight: bold; margin-top: -0.5em; margin-bottom: 1.5em;">
-                ⚠️ 文件大小建议：文本文件建议不超过 <strong>10,000 字</strong>（约 5 分钟语音）<br>
-                ⚠️ File limit: Text input should be under <strong>10,000 characters</strong> (~5 minutes of speech)
+        <form method="POST" enctype="multipart/form-data">
+            <label>📝 输入文本内容:<br><span style="font-size: 0.9em; color: #666;">Type text directly</span></label>
+            <textarea name="typed_text" rows="6" maxlength="10000" placeholder="输入或粘贴文本内容..." oninput="updateCount(this.value.length)"></textarea>
+            <div id="charCount" style="font-size: 0.85em; color: #666; margin-bottom: 1em;">0 / 10,000</div>
+
+            <script>
+            function updateCount(length) {
+                document.getElementById('charCount').innerText = `${length} / 10,000`;
+            }
+            </script>
+
+            <p style="color: #d32f2f; font-size: 0.9em; font-weight: bold;">
+                ⚠️ 文本建议不超过 <strong>10,000 字</strong>（约 5 分钟语音）<br>
+                ⚠️ Recommended limit: Under <strong>10,000 characters</strong> (~5 minutes)
             </p>
 
+            <label>📄 或上传文本文件 (.txt / .docx):<br><span style="font-size: 0.9em; color: #666;">Or upload a text file</span></label>
+            <input type="file" name="textfile">
 
             <label>🎙️ 语音性别:<br><span style="font-size: 0.9em; color: #666;">Voice Gender</span></label>
             <select name="voice_gender">
@@ -115,6 +133,12 @@
 
             <label>🎼 上传背景音乐（可选）:<br><span style="font-size: 0.9em; color: #666;">Optional background music (.mp3)</span></label>
             <input type="file" name="bgmusicfile" accept=".mp3">
+
+            <p style="color: #d32f2f; font-size: 0.9em; font-weight: bold; margin-top: -0.5em; margin-bottom: 1.5em;">
+                ⚠️ 背景音乐建议：时长不超过 <strong>5 分钟</strong>，文件大小小于 <strong>5MB</strong><br>
+                ⚠️ Music recommendation: under <strong>5 minutes</strong> and <strong>5MB</strong>
+            </p>
+
 
             <label>📢 语速（语音）:<br><span style="font-size: 0.9em; color: #666;">Voice speaking rate</span></label>
             <input type="number" name="voice_speed" step="0.1" value="1.0">

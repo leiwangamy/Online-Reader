@@ -11,6 +11,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FILE = "static/output.mp3"
 DEFAULT_MUSIC = "static/music/background.mp3"
+MAX_LENGTH = 10000
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -74,7 +75,7 @@ def index():
         os.remove(os.path.join(UPLOAD_FOLDER, f))
 
     if request.method == "POST":
-        file = request.files["textfile"]
+        text = request.form.get("typed_text", "").strip()
         gender = request.form.get("voice_gender", "female")
         music_on = request.form.get("music") == "on"
         music_speed = request.form.get("speed", "1.0")
@@ -82,11 +83,20 @@ def index():
         music_volume = request.form.get("music_volume", "15")
         music_upload = request.files.get("bgmusicfile")
 
-        ext = file.filename.rsplit(".", 1)[-1].lower()
-        input_path = os.path.join(UPLOAD_FOLDER, f"input.{ext}")
-        file.save(input_path)
+        if not text:
+            file = request.files.get("textfile")
+            if file and file.filename:
+                ext = file.filename.rsplit(".", 1)[-1].lower()
+                input_path = os.path.join(UPLOAD_FOLDER, f"input.{ext}")
+                file.save(input_path)
+                text = extract_text(input_path)
 
-        text = extract_text(input_path)
+        if not text:
+            return render_template("index.html", download_link=None, error="⚠️ 请提供文本内容或上传文件。Please provide text input or upload a file.")
+
+        if len(text) > MAX_LENGTH:
+            return render_template("index.html", download_link=None, error="⚠️ 文本过长，请限制在 10,000 字以内。Text too long. Limit to 10,000 characters.")
+
         lang_hint = "zh" if any("\u4e00" <= ch <= "\u9fff" for ch in text) else "en"
         voice_id = VOICE_MAP.get((lang_hint, gender), "zh-CN-XiaoxiaoNeural")
 
