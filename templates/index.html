@@ -1,171 +1,164 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文本转语音工具 | Text-to-Speech Generator</title>
-    <style>
-        body {
-            font-family: "Segoe UI", sans-serif;
-            background: #f0f4f8;
-            padding: 2em;
-            color: #333;
-        }
-        .container {
-            background: #fff;
-            padding: 2em;
-            border-radius: 12px;
-            max-width: 640px;
-            margin: auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #1e88e5;
-            font-size: 1.6em;
-        }
-        label {
-            font-weight: bold;
-        }
-        input, select, textarea {
-            margin-top: 4px;
-            margin-bottom: 12px;
-            width: 100%;
-            padding: 0.6em;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-family: inherit;
-        }
-        textarea {
-            resize: vertical;
-        }
-        input[type=checkbox] {
-            width: 20px;
-            height: 20px;
-            transform: scale(1.5);
-            cursor: pointer;
-        }
-        button {
-            background-color: #1e88e5;
-            color: white;
-            border: none;
-            padding: 0.8em 1.5em;
-            font-size: 1em;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #1565c0;
-        }
-        audio {
-            margin-top: 1em;
-            width: 100%;
-        }
-        input[type=range] {
-            appearance: none;
-            width: 100%;
-            height: 8px;
-            background: linear-gradient(to right, #1565c0, #90caf9);
-            border-radius: 5px;
-            outline: none;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #1e88e5;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        input[type=range]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            background: #1e88e5;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 3em;
-            font-size: 0.9em;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文本转语音工具 | Text-to-Speech Generator</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 2em;
+      color: #333;
+    }
+    .container {
+      background: white;
+      max-width: 700px;
+      margin: auto;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #007acc;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1em;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.6em;
+      margin-top: 0.3em;
+      margin-bottom: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      padding: 0.8em;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .note {
+      font-size: 0.9em;
+      color: #777;
+    }
+    .warning {
+      color: #d32f2f;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.85em;
+      color: #777;
+      margin-top: 2em;
+    }
+  </style>
+  <script>
+    function updateCharCount(value) {
+      document.getElementById("charCount").innerText = `${value.length} / 10000`;
+    }
+
+    function checkCantoneseReminder() {
+      const selected = document.getElementById("voice_gender").value;
+      const reminder = document.getElementById("cantonese-reminder");
+      if (selected.startsWith("zh-hk")) {
+        reminder.style.display = "block";
+      } else {
+        reminder.style.display = "none";
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      checkCantoneseReminder();
+    });
+  </script>
 </head>
 <body>
-    <div class="container">
-        <h1>🎤 文本转语音生成器<br><span style="font-size: 0.6em; font-weight: normal;">Text-to-Speech Generator</span></h1>
+  <div class="container">
+    <h1>🎤 文本转语音生成器<br><span style="font-size: 0.7em;">Text-to-Speech Generator</span></h1>
 
-        {% if error %}
-        <p style="color: red; font-weight: bold;">⚠️ {{ error }}</p>
-        {% endif %}
+    {% if error %}
+    <p class="warning">⚠️ {{ error }}</p>
+    {% endif %}
 
-        <form method="POST" enctype="multipart/form-data">
-            <label>📝 输入文本内容:<br><span style="font-size: 0.9em; color: #666;">Type text directly</span></label>
-            <textarea name="typed_text" rows="6" maxlength="10000" placeholder="输入或粘贴文本内容..." oninput="updateCount(this.value.length)"></textarea>
-            <div id="charCount" style="font-size: 0.85em; color: #666; margin-bottom: 1em;">0 / 10,000</div>
+    <form method="POST" enctype="multipart/form-data">
+      <label>📝 输入文本内容 | Type text directly</label>
+      <textarea name="typed_text" rows="6" maxlength="10000" placeholder="请输入文本或粘贴文本..." oninput="updateCharCount(this.value)"></textarea>
+      <div id="charCount" class="note">0 / 10000</div>
 
-            <script>
-            function updateCount(length) {
-                document.getElementById('charCount').innerText = `${length} / 10,000`;
-            }
-            </script>
+      <p class="warning">⚠️ 建议不超过 10000 字（约 5 分钟音频）<br>⚠️ Limit: 10,000 characters (≈5 minutes)</p>
 
-            <p style="color: #d32f2f; font-size: 0.9em; font-weight: bold;">
-                ⚠️ 文本建议不超过 <strong>10,000 字</strong>（约 5 分钟语音）<br>
-                ⚠️ Recommended limit: Under <strong>10,000 characters</strong> (~5 minutes)
-            </p>
+      <label>📄 上传文档 (.txt / .docx) | Upload text file</label>
+      <input type="file" name="textfile" accept=".txt,.docx" />
 
-            <label>📄 或上传文本文件 (.txt / .docx):<br><span style="font-size: 0.9em; color: #666;">Or upload a text file</span></label>
-            <input type="file" name="textfile">
+      <label>🌍 语言与性别选择 | Language & Gender</label>
+      <select name="voice_gender" id="voice_gender" onchange="checkCantoneseReminder()">
+        <option value="zh_female">中文 - 女声</option>
+        <option value="zh_male">中文 - 男声</option>
+        <option value="zh-hk_female">粤语 - 女声</option>
+        <option value="zh-hk_male">粤语 - 男声</option>
+        <option value="en_female">English - Female</option>
+        <option value="en_male">English - Male</option>
+        <option value="ja_female">日本語 - 女性</option>
+        <option value="ja_male">日本語 - 男性</option>
+        <option value="fr_female">Français - Femme</option>
+        <option value="fr_male">Français - Homme</option>
+      </select>
 
-            <label>🎙️ 语音性别:<br><span style="font-size: 0.9em; color: #666;">Voice Gender</span></label>
-            <select name="voice_gender">
-                <option value="female">女声 Female</option>
-                <option value="male">男声 Male</option>
-            </select>
+      <p id="cantonese-reminder" class="warning" style="display: none;">
+        ⚠️ 选择“粤语”时，请确保选择了男声或女声。<br>
+        ⚠️ For Cantonese, please select male or female voice.
+      </p>
 
-            <label>🎵 启用背景音乐:<br><span style="font-size: 0.9em; color: #666;">Enable background music</span></label>
-            <br><br>
-            <input type="checkbox" name="music">
+      <label>🎼 启用背景音乐 | Enable background music</label>
+      <input type="checkbox" name="music" />
 
-            <p style="margin: 1em 0; font-size: 0.9em; color: #666;">👇 可选：上传自定义背景音乐</p>
+      <label>📂 上传背景音乐 (.mp3) | Upload background music</label>
+      <input type="file" name="bgmusicfile" accept=".mp3" />
+      <p class="note">建议小于 5MB，时长 5 分钟以内<br>Recommended under 5MB, under 5 min</p>
 
-            <label>🎼 上传背景音乐（可选）:<br><span style="font-size: 0.9em; color: #666;">Optional background music (.mp3)</span></label>
-            <input type="file" name="bgmusicfile" accept=".mp3">
+      <label>⏩ 背景音乐播放速度 | Music speed</label>
+      <input type="number" name="speed" step="0.1" value="1.0" />
 
-            <p style="color: #d32f2f; font-size: 0.9em; font-weight: bold; margin-top: -0.5em; margin-bottom: 1.5em;">
-                ⚠️ 背景音乐建议：时长不超过 <strong>5 分钟</strong>，文件大小小于 <strong>5MB</strong><br>
-                ⚠️ Music recommendation: under <strong>5 minutes</strong> and <strong>5MB</strong>
-            </p>
+      <label>🗣️ 语音语速 | Voice speed</label>
+      <input type="number" name="voice_speed" step="0.1" value="1.0" />
 
+      <label>🔊 背景音乐音量 | Music volume</label>
+      <input type="range" name="music_volume" min="0" max="40" value="15" />
 
-            <label>📢 语速（语音）:<br><span style="font-size: 0.9em; color: #666;">Voice speaking rate</span></label>
-            <input type="number" name="voice_speed" step="0.1" value="1.0">
+      <button type="submit">▶️ 生成语音 | Generate Speech</button>
+    </form>
 
-            <label>⏩ 背景音乐播放速度:<br><span style="font-size: 0.9em; color: #666;">Music playback speed</span></label>
-            <input type="number" name="speed" step="0.1" value="1.0">
+    {% if download_link %}
+    <h3>✅ 语音生成成功！<br><span class="note">Speech generated successfully.</span></h3>
+    <audio controls>
+      <source src="{{ download_link }}" type="audio/mpeg" />
+      Your browser does not support audio playback.
+    </audio>
+    <br />
+    <a href="{{ download_link }}" download>📥 下载语音 | Download MP3</a>
+    {% endif %}
+  </div>
 
-            <label>🔊 背景音乐音量（左：最响，右：最轻）:<br><span style="font-size: 0.9em; color: #666;">Music volume (left = louder, right = softer)</span></label>
-            <input type="range" name="music_volume" min="0" max="40" value="15">
-
-            <button type="submit">▶️ 生成语音 Generate</button>
-        </form>
-
-        {% if download_link %}
-        <h3>✅ 语音生成成功！<br><span style="font-size: 0.9em; color: #666;">Speech generated successfully</span></h3>
-        <audio controls>
-            <source src="{{ download_link }}" type="audio/mpeg">
-            您的浏览器不支持音频播放。Your browser does not support audio.
-        </audio>
-        <br><br>
-        <a href="{{ download_link }}" download>📥 点击下载语音文件 | Download MP3</a>
-        {% endif %}
-    </div>
-
-    <div class="footer">
-        本项目由用户设计，使用 <strong>OpenAI ChatGPT</strong> 辅助开发，语音生成基于 Microsoft Edge-TTS。<br>
-        Created by the user with assistance from <strong>OpenAI ChatGPT</strong>. Powered by Microsoft Edge-TTS.
-    </div>
+  <div class="footer">
+    本工具由 ChatGPT 和 Microsoft Edge-TTS 提供技术支持。<br />
+    Powered by ChatGPT & Microsoft Edge-TTS.
+  </div>
 </body>
 </html>

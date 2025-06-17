@@ -1,5 +1,4 @@
 import os
-import uuid
 import asyncio
 from flask import Flask, render_template, request
 from docx import Document
@@ -15,15 +14,18 @@ MAX_LENGTH = 10000
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# 语音映射，包括粤语语音（zh-HK）
 VOICE_MAP = {
-    ("zh", "female"): "zh-CN-XiaoxiaoNeural",
-    ("zh", "male"): "zh-CN-YunxiNeural",
-    ("en", "female"): "en-US-AriaNeural",
-    ("en", "male"): "en-US-GuyNeural",
-    ("ja", "female"): "ja-JP-NanamiNeural",
-    ("ja", "male"): "ja-JP-KeitaNeural",
-    ("fr", "female"): "fr-FR-DeniseNeural",
-    ("fr", "male"): "fr-FR-HenriNeural",
+    "zh_female": "zh-CN-XiaoxiaoNeural",
+    "zh_male": "zh-CN-YunxiNeural",
+    "zh-hk_female": "zh-HK-HiuMaanNeural",   # 粤语女声
+    "zh-hk_male": "zh-HK-WanLungNeural",     # 粤语男声
+    "en_female": "en-US-AriaNeural",
+    "en_male": "en-US-GuyNeural",
+    "ja_female": "ja-JP-NanamiNeural",
+    "ja_male": "ja-JP-KeitaNeural",
+    "fr_female": "fr-FR-DeniseNeural",
+    "fr_male": "fr-FR-HenriNeural"
 }
 
 def extract_text(filepath):
@@ -48,7 +50,11 @@ def extract_text(filepath):
     return ""
 
 async def generate_speech(text, voice_id, out_path, speed):
-    communicate = edge_tts.Communicate(text, voice=voice_id, rate=f"{float(speed) * 100 - 100:+.0f}%")
+    communicate = edge_tts.Communicate(
+        text,
+        voice=voice_id,
+        rate=f"{float(speed) * 100 - 100:+.0f}%"
+    )
     await communicate.save(out_path)
 
 def mix_music(voice_path, music_path, speed, include_music, volume_adjust):
@@ -69,6 +75,7 @@ def mix_music(voice_path, music_path, speed, include_music, volume_adjust):
 def index():
     download_link = None
 
+    # 清理旧文件
     if os.path.exists(OUTPUT_FILE):
         os.remove(OUTPUT_FILE)
     for f in os.listdir(UPLOAD_FOLDER):
@@ -76,13 +83,14 @@ def index():
 
     if request.method == "POST":
         text = request.form.get("typed_text", "").strip()
-        gender = request.form.get("voice_gender", "female")
+        voice_key = request.form.get("voice_gender", "zh_female")
         music_on = request.form.get("music") == "on"
         music_speed = request.form.get("speed", "1.0")
         voice_speed = request.form.get("voice_speed", "1.0")
         music_volume = request.form.get("music_volume", "15")
         music_upload = request.files.get("bgmusicfile")
 
+        # 如果没填文本，尝试读取上传的文件
         if not text:
             file = request.files.get("textfile")
             if file and file.filename:
@@ -92,20 +100,22 @@ def index():
                 text = extract_text(input_path)
 
         if not text:
-            return render_template("index.html", download_link=None, error="⚠️ 请提供文本内容或上传文件。Please provide text input or upload a file.")
+            return render_template("index.html", error="⚠️ 请提供文本或上传文件。Please provide text or upload a file.", download_link=None)
 
         if len(text) > MAX_LENGTH:
-            return render_template("index.html", download_link=None, error="⚠️ 文本过长，请限制在 10,000 字以内。Text too long. Limit to 10,000 characters.")
+            return render_template("index.html", error="⚠️ 文本过长，请限制在 10,000 字以内。Text too long.", download_link=None)
 
-        lang_hint = "zh" if any("\u4e00" <= ch <= "\u9fff" for ch in text) else "en"
-        voice_id = VOICE_MAP.get((lang_hint, gender), "zh-CN-XiaoxiaoNeural")
+        # 根据 voice_key 获取实际语音 ID
+        voice_id = VOICE_MAP.get(voice_key, "zh-CN-XiaoxiaoNeural")
 
+        # 背景音乐路径
         bg_music_path = DEFAULT_MUSIC
         if music_upload and music_upload.filename:
-            music_path = os.path.join(UPLOAD_FOLDER, "custom_music.mp3")
-            music_upload.save(music_path)
-            bg_music_path = music_path
+            custom_path = os.path.join(UPLOAD_FOLDER, "custom_music.mp3")
+            music_upload.save(custom_path)
+            bg_music_path = custom_path
 
+        # 生成语音 + 混音
         asyncio.run(generate_speech(text, voice_id, OUTPUT_FILE, voice_speed))
         mix_music(OUTPUT_FILE, bg_music_path, music_speed, music_on, music_volume)
 
