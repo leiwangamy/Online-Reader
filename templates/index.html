@@ -68,6 +68,26 @@
       color: #777;
       margin-top: 2em;
     }
+
+    #loading {
+      text-align: center;
+      background: #fff8dc;
+      border-radius: 10px;
+      padding: 30px;
+      margin: 50px auto;
+      width: 60%;
+      font-size: 1.2em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #content {
+      display: none;         /* hidden until ready */
+      margin: 20px auto;
+      max-width: 800px;
+      padding: 20px;
+    }
+
+    
   </style>
   <script>
     function updateCharCount(value) {
@@ -87,9 +107,28 @@
     window.addEventListener("DOMContentLoaded", () => {
       checkCantoneseReminder();
     });
+
+    setTimeout(() => {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("content").style.display = "block";
+    }, 1200); // ⏱ 改为 5 秒测试（5000ms）
+
+//    window.addEventListener("DOMContentLoaded", function () {
+//      document.getElementById("loading").style.display = "none";
+//      document.getElementById("content").style.display = "block";
+//    });
+    
   </script>
 </head>
 <body>
+
+  <div id="loading">
+    🔄 页面正在加载，请稍候…<br>
+    🔄 Page is loading, please wait…
+  </div>
+
+  <div id="content">
+
   <div class="container">
     <h1>🎤 文本转语音生成器<br><span style="font-size: 0.7em;">Text-to-Speech Generator</span></h1>
 
@@ -120,12 +159,12 @@
         <option value="fr_female">Français - Femme</option>
         <option value="fr_male">Français - Homme</option>
       </select>
-      
+
       <p id="cantonese-reminder" class="warning" style="display: none;">
         ⚠️ 粵語語音請輸入粵語（廣東話）文字，請勿輸入普通話，否則發音可能不準。<br>
         ⚠️ For Cantonese voice, please enter text written in Cantonese. Avoid Mandarin text to ensure accurate pronunciation.
       </p>
-      
+
       <label>
         🎼 启用背景音乐 | Enable background music
         <br />
@@ -164,6 +203,8 @@
   <div class="footer">
     本工具由 ChatGPT 和 Microsoft Edge-TTS 提供技术支持。<br />
     Powered by ChatGPT & Microsoft Edge-TTS.
+  </div>
+
   </div>
 </body>
 </html>
