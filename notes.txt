@@ -1,7 +1,4 @@
-import threading
 import os
-import uuid
-import time
 import asyncio
 from flask import Flask, render_template, request
 from docx import Document
@@ -12,6 +9,7 @@ from edge_tts.exceptions import NoAudioReceived
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
+OUTPUT_FILE = "static/output.mp3"
 DEFAULT_MUSIC = "static/music/background.mp3"
 MAX_LENGTH = 10000
 
@@ -29,20 +27,6 @@ VOICE_MAP = {
     "fr_female": "fr-FR-DeniseNeural",
     "fr_male": "fr-FR-HenriNeural"
 }
-
-# 🔁 自动清理旧文件（10分钟后删除，5分钟运行一次）
-def clean_old_files_periodically(folder, prefix="output_", age_limit=600, interval=300):
-    def cleaner():
-        while True:
-            now = time.time()
-            for fname in os.listdir(folder):
-                if fname.startswith(prefix) and fname.endswith(".mp3"):
-                    path = os.path.join(folder, fname)
-                    if os.path.isfile(path) and now - os.path.getmtime(path) > age_limit:
-                        os.remove(path)
-                        print(f"Deleted old file: {fname}")
-            time.sleep(interval)
-    threading.Thread(target=cleaner, daemon=True).start()
 
 def extract_text(filepath):
     if filepath.endswith(".txt"):
@@ -64,9 +48,6 @@ def extract_text(filepath):
             print(f"读取 docx 文件失败: {e}")
             return ""
     return ""
-
-def generate_unique_filename():
-    return f"static/output_{uuid.uuid4().hex}.mp3"
 
 async def generate_speech(text, voice_id, out_path, speed):
     communicate = edge_tts.Communicate(
@@ -95,6 +76,8 @@ def index():
     download_link = None
     error = None
 
+    if os.path.exists(OUTPUT_FILE):
+        os.remove(OUTPUT_FILE)
     for f in os.listdir(UPLOAD_FOLDER):
         os.remove(os.path.join(UPLOAD_FOLDER, f))
 
@@ -135,11 +118,10 @@ def index():
                 music_upload.save(custom_path)
                 bg_music_path = custom_path
 
-            output_file = generate_unique_filename()
-            asyncio.run(generate_speech(text, voice_id, output_file, voice_speed))
-            mix_music(output_file, bg_music_path, music_speed, music_on, music_volume)
+            asyncio.run(generate_speech(text, voice_id, OUTPUT_FILE, voice_speed))
+            mix_music(OUTPUT_FILE, bg_music_path, music_speed, music_on, music_volume)
 
-            download_link = output_file
+            download_link = OUTPUT_FILE
 
         except NoAudioReceived:
             error = "⚠️ 无法生成语音。请检查输入内容和语言设置是否正确。\n⚠️ No audio was generated. Please check your input and voice selection."
@@ -148,7 +130,14 @@ def index():
 
     return render_template("index.html", download_link=download_link, error=error)
 
-# ✅ 在应用启动前运行定期清理器
+@app.route("/files")  # ✅ 插入在这里
+def list_files():
+    files = [
+        f for f in os.listdir("static")
+        if f.startswith("output_") and f.endswith(".mp3")
+    ]
+    return "<h3>当前已生成的 MP3 文件：</h3>" + "<br>".join(files)
+
 clean_old_files_periodically("static", prefix="output_", age_limit=600, interval=300)
 
 if __name__ == "__main__":

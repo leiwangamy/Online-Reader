@@ -195,6 +195,12 @@
       <source src="{{ download_link }}" type="audio/mpeg" />
       Your browser does not support audio playback.
     </audio>
+    
+    {% if download_link %}
+      <h3>🎵 当前已生成的 MP3 文件 | Currently Generated MP3 Files:</h3>
+      <p>👉 <a href="{{ download_link }}" target="_blank">{{ download_link.split('/')[-1] }}</a></p>
+    {% endif %}
+    
     <br />
     <a href="{{ download_link }}" download>📥 下载语音 | Download MP3</a>
     {% endif %}
