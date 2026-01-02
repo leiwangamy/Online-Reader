@@ -27,6 +27,59 @@ A web-based Text-to-Speech (TTS) app using Edge-TTS, allowing users to convert t
 
 ---
 
+## 🛠️ Setup & Installation
+
+### Prerequisites
+- Python 3.11 or higher
+- pip (Python package manager)
+
+### Local Development Setup
+
+1. **Clone or navigate to the project directory**
+   ```bash
+   cd "C:\Users\Lei\Documents\VS Code Projects\Online-Reader"
+   ```
+
+2. **Create a virtual environment** (recommended)
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate the virtual environment**
+   
+   **Windows (PowerShell):**
+   ```powershell
+   .\venv\Scripts\Activate.ps1
+   ```
+   
+   **Windows (Command Prompt):**
+   ```cmd
+   venv\Scripts\activate.bat
+   ```
+   
+   **macOS/Linux:**
+   ```bash
+   source venv/bin/activate
+   ```
+
+4. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Run the application**
+   ```bash
+   python main.py
+   ```
+
+6. **Access the website**
+   - Open your browser and go to: http://localhost:8080
+
+### Note
+The virtual environment (`venv/`) is already included in `.gitignore` and won't be committed to version control.
+
+---
+
 ## 🚀 How to Use
 
 1. Type or paste your text (max 10,000 characters)  
